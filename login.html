@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - VisiCheck</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="login-page">
+    <div class="login-card animate-fade">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div
+                style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 2rem; font-weight: 800; color: var(--primary);">
+                <i data-lucide="shield-check" style="width: 40px; height: 40px;"></i>
+                VisiCheck
+            </div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Secure Visitor Administration</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label class="input-label">Username</label>
+                <input type="text" id="username" class="input-field" placeholder="Enter admin" required>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Password</label>
+                <input type="password" id="password" class="input-field" placeholder="Enter password123" required>
+            </div>
+            <button type="submit" class="primary-btn" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                Sign In
+            </button>
+        </form>
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const success = await window.auth.login(
+                document.getElementById('username').value,
+                document.getElementById('password').value
+            );
+            if (success) {
+                window.location.href = 'index.html';
+            } else {
+                const card = document.querySelector('.login-card');
+                card.style.animation = 'none';
+                card.offsetHeight; /* trigger reflow */
+                card.style.animation = 'shake 0.5s';
+                alert('Invalid credentials. Hint: admin / password123');
+            }
+        };
+        lucide.createIcons();
+    </script>
+    <style>
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+    </style>
+</body>
+
+</html>

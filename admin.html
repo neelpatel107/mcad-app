@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - VisiCheck</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside id="sidebar" class="sidebar"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2 id="pageTitle">System Administration</h2>
+                <div class="user-profile">
+                    <span id="userName">Admin</span>
+                    <button id="logoutBtn" class="primary-btn" style="padding: 0.5rem 1rem;">Logout</button>
+                </div>
+            </header>
+
+            <div class="page-content animate-fade">
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3>System Health</h3>
+                    <p style="color: var(--text-muted);">Database: <span id="dbStatus"
+                            style="color: var(--success); font-weight: 700;">Online</span> (v2.0)</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3>System Customization</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                        <div class="input-group">
+                            <label class="input-label">Accent Theme</label>
+                            <input type="color" id="themeColor" class="input-field" style="height: 50px; padding: 4px;"
+                                value="#6366f1" oninput="admin.updateTheme()">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Glass Blur (px)</label>
+                            <input type="range" id="glassBlur" min="0" max="40" value="12" class="input-field"
+                                oninput="admin.updateTheme()">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <div class="card">
+                        <i data-lucide="shield-check"
+                            style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <h4>Biometric Pattern Lock</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Use a secure
+                            gesture pattern instead of a password.</p>
+                        <button class="primary-btn"
+                            style="width: 100%; background: var(--surface); border: 1px solid var(--border);"
+                            onclick="alert('Biometric Pattern Enabled for next login!')">Enable Bio-Lock</button>
+                    </div>
+
+                    <div class="card">
+                        <i data-lucide="trash-2"
+                            style="width: 48px; height: 48px; color: var(--warning); margin-bottom: 1rem;"></i>
+                        <h4>Privacy & Maintenance</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Purge visitor
+                            data older than 30 days to stay GDPR compliant.</p>
+                        <button onclick="admin.purge()" class="primary-btn"
+                            style="width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--warning);">
+                            Run Auto-Purge
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="border-color: var(--danger); margin-top: 2rem;">
+                    <i data-lucide="refresh-cw"
+                        style="width: 48px; height: 48px; color: var(--danger); margin-bottom: 1rem;"></i>
+                    <h4 style="color: var(--danger);">Factory Reset</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Wipe all data and
+                        restore 50 perfection dummy records.</p>
+                    <button onclick="admin.reset()" class="primary-btn btn-danger" style="width: 100%;">
+                        Perform Factory Reset
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        const admin = {
+            async init() {
+                auth.checkAuth();
+                await window.db.init();
+                this.applyTheme();
+                this.loadFaceWall();
+            },
+
+            async loadFaceWall() {
+                const wall = document.getElementById('faceWall');
+                const visitors = await window.db.getAll('visitors');
+                const actives = visitors.filter(v => v.status === 'active');
+
+                wall.innerHTML = actives.length ? '' : '<p style="color: var(--text-muted); font-size: 0.8rem;">No active visitors found.</p>';
+
+                actives.forEach(v => {
+                    const img = document.createElement('img');
+                    img.src = v.photo;
+                    img.style.width = '100%';
+                    img.style.aspectRatio = '1/1';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '12px';
+                    img.style.border = '2px solid var(--primary)';
+                    img.title = v.name;
+                    wall.appendChild(img);
+                });
+            },
+
+            toggleKiosk() {
+                const isKiosk = document.body.classList.toggle('kiosk-mode');
+                localStorage.setItem('vKioskMode', isKiosk);
+                document.getElementById('kioskBtn').innerText = isKiosk ? 'Exit Kiosk Mode' : 'Enable Kiosk Mode';
+                if (isKiosk) {
+                    window.location.href = 'visitors.html';
+                }
+            },
+
+            async purge() {
+                if (confirm('Are you sure you want to delete records older than 30 days?')) {
+                    const purged = await window.db.purgeOldData(30);
+                    alert(`Maintenance Complete: ${purged} old records purged.`);
+                    await this.loadFaceWall();
+                }
+            },
+
+            async reset() {
+                if (confirm('CRITICAL: This will delete all your visitor logs and restore 50 dummy records. Proceed?')) {
+                    await window.db.factoryReset();
+                    alert('System Reset Successful! 50 records restored.');
+                    window.location.href = 'index.html';
+                }
+            },
+
+            updateTheme() {
+                const color = document.getElementById('themeColor').value;
+                const blur = document.getElementById('glassBlur').value;
+                document.documentElement.style.setProperty('--primary', color);
+                document.documentElement.style.setProperty('--glass-blur', `${blur}px`);
+                localStorage.setItem('vThemeColor', color);
+                localStorage.setItem('vGlassBlur', blur);
+            },
+
+            applyTheme() {
+                const color = localStorage.getItem('vThemeColor') || '#6366f1';
+                const blur = localStorage.getItem('vGlassBlur') || '12';
+                document.documentElement.style.setProperty('--primary', color);
+                document.documentElement.style.setProperty('--glass-blur', `${blur}px`);
+                if (document.getElementById('themeColor')) {
+                    document.getElementById('themeColor').value = color;
+                    document.getElementById('glassBlur').value = blur;
+                }
+            }
+        };
+        window.addEventListener('DOMContentLoaded', () => admin.init());
+    </script>
+</body>
+
+</html>

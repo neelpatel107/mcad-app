@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - VisiCheck</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside id="sidebar" class="sidebar"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2 id="pageTitle">Visitor History</h2>
+                <div class="user-profile">
+                    <span id="userName">Admin</span>
+                    <button id="logoutBtn" class="primary-btn" style="padding: 0.5rem 1rem;">Logout</button>
+                </div>
+            </header>
+
+            <div class="page-content animate-fade">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div>
+                            <h3>Complete Audit Trail</h3>
+                            <p style="color: var(--text-muted); font-size: 0.875rem;">All visitor movements tracked
+                                locally.</p>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <input type="text" id="histSearch" class="input-field" placeholder="Search visitors..."
+                                    style="padding: 0.625rem 1.25rem; width: 240px;">
+                            </div>
+                            <button id="exportBtn" class="primary-btn" onclick="app.exportToCSV()"
+                                style="background: var(--text); padding: 0.5rem 1.5rem;">
+                                <i data-lucide="download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Visitor</th>
+                                    <th>ID Number</th>
+                                    <th>Purpose</th>
+                                    <th>Host / Source</th>
+                                    <th>Checked In</th>
+                                    <th>Checked Out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable">
+                                <!-- Data Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/history.js"></script>
+</body>
+
+</html>

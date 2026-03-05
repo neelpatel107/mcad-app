@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - VisiCheck</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <div class="app-layout">
+    <aside id="sidebar" class="sidebar"></aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="user-profile">
+          <button class="primary-btn btn-danger" onclick="app.triggerSOS()" style="padding: 0.5rem 1rem;">
+            <i data-lucide="bell-ring"></i> SOS
+          </button>
+          <div class="user-avatar" id="avatarInitials">AD</div>
+          <span id="userName">Admin</span>
+          <button id="logoutBtn"
+            style="background: none; border: none; cursor: pointer; color: var(--danger); margin-left: 0.5rem;">
+            <i data-lucide="log-out" style="width: 18px;"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content animate-fade">
+        <div class="stats-grid">
+          <div class="card">
+            <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+              <i data-lucide="user-plus"></i>
+            </div>
+            <div class="stat-value" id="todayVisitors">0</div>
+            <div class="stat-label">Today's Visitors</div>
+          </div>
+          <div class="card">
+            <div class="stat-icon" style="background: #dcfce7; color: #15803d;">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="stat-value" id="activeVisitors">0</div>
+            <div class="stat-label">Currently In</div>
+          </div>
+          <div class="card">
+            <div class="stat-icon" style="background: #fee2e2; color: #991b1b;">
+              <i data-lucide="shield-alert"></i>
+            </div>
+            <div class="stat-value" id="blacklistCount">0</div>
+            <div class="stat-label">Blacklisted</div>
+          </div>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <div class="stat-label">Building Capacity</div>
+              <div id="capacityText" style="font-weight: 800; font-size: 0.8rem; color: var(--primary);">0%</div>
+            </div>
+            <div class="capacity-meter">
+              <div id="capacityFill" class="capacity-fill" style="width: 0%;"></div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Live limit: 50 visitors</p>
+          </div>
+        </div>
+
+
+        <div class="card" style="margin-top: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3>Recent Activity</h3>
+            <a href="history.html" style="color: var(--primary); font-size: 0.875rem; font-weight: 600;">View All</a>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Visitor</th>
+                  <th>Purpose</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentTable">
+                <!-- Dynamic Load -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="globalSOS" class="sos-alert">
+    <i data-lucide="shield-alert" style="width: 32px; height: 32px;"></i>
+    <span>EMERGENCY ALERT: EVACUATE IMMEDIATELY</span>
+    <button onclick="app.stopSOS()"
+      style="background: white; color: #7f1d1d; border: none; padding: 0.4rem 1rem; border-radius: 8px; font-weight: 800; cursor: pointer;">SILENCE</button>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const dashboard = {
+      async init() {
+        auth.checkAuth();
+        await window.db.init();
+        this.updateStats();
+        this.loadRecent();
+      },
+
+
+      async updateStats() {
+        const all = await window.db.getAll('visitors');
+        const today = all.filter(v => {
+          const d = new Date(v.checkIn);
+          return d.toDateString() === new Date().toDateString();
+        });
+        const active = all.filter(v => v.status === 'active');
+        const bl = await window.db.getAll('blacklist');
+
+        document.getElementById('todayVisitors').innerText = today.length;
+        document.getElementById('activeVisitors').innerText = active.length;
+        document.getElementById('blacklistCount').innerText = bl.length;
+
+        // Capacity calculation (assume 50 max)
+        const cap = Math.min((active.length / 50) * 100, 100);
+        document.getElementById('capacityFill').style.width = `${cap}%`;
+        document.getElementById('capacityText').innerText = `${Math.round(cap)}%`;
+      },
+
+      async loadRecent() {
+        const all = await window.db.getAll('visitors');
+        const sorted = all.sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn)).slice(0, 5);
+
+        document.getElementById('recentTable').innerHTML = sorted.map(v => `
+                    <tr>
+                        <td style="display: flex; align-items: center; gap: 0.75rem;">
+                            <img src="${v.photo}" style="width: 32px; height: 32px; border-radius: 50%;">
+                            <span style="font-weight: 600;">${v.name}</span>
+                        </td>
+                        <td>${v.purpose}</td>
+                        <td style="color: var(--text-muted);">${new Date(v.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td>
+                            <span class="badge ${v.status === 'active' ? 'badge-success' : 'badge-warning'}">
+                                ${v.status === 'active' ? '<div class="pulse-dot"></div>' : ''}
+                                ${v.status}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+      }
+    };
+    window.addEventListener('DOMContentLoaded', () => dashboard.init());
+  </script>
+</body>
+
+</html>
