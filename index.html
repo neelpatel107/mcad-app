@@ -17,7 +17,12 @@
 
     <main class="main-content">
       <header class="topbar">
-        <h2 id="pageTitle">Dashboard</h2>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="menu-toggle" onclick="app.toggleSidebar()">
+            <i data-lucide="menu"></i>
+          </button>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
         <div class="user-profile">
           <button class="primary-btn btn-danger" onclick="app.triggerSOS()" style="padding: 0.5rem 1rem;">
             <i data-lucide="bell-ring"></i> SOS
