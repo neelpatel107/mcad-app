@@ -251,9 +251,14 @@ const visitors = {
         } catch (err) {
             console.error('Checkout error:', err);
         }
-        initLucide() {
-            if (window.lucide) {
-                window.lucide.createIcons();
-            }
+    },
+
+    initLucide() {
+        if (window.lucide) {
+            window.lucide.createIcons();
         }
-    };
+    }
+};
+
+window.visitors = visitors;
+window.addEventListener('DOMContentLoaded', () => visitors.init());
