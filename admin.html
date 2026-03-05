@@ -17,7 +17,12 @@
 
         <main class="main-content">
             <header class="topbar">
-                <h2 id="pageTitle">System Administration</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="menu-toggle" onclick="app.toggleSidebar()">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <h2 id="pageTitle">System Administration</h2>
+                </div>
                 <div class="user-profile">
                     <span id="userName">Admin</span>
                     <button id="logoutBtn" class="primary-btn" style="padding: 0.5rem 1rem;">Logout</button>
