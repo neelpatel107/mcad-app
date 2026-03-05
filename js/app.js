@@ -83,6 +83,15 @@ const app = {
         const sidebar = document.getElementById('sidebar');
         if (!sidebar) return;
 
+        // Ensure overlay exists
+        if (!document.getElementById('sidebarOverlay')) {
+            const overlay = document.createElement('div');
+            overlay.id = 'sidebarOverlay';
+            overlay.className = 'sidebar-overlay';
+            overlay.onclick = () => this.toggleSidebar();
+            document.body.appendChild(overlay);
+        }
+
         const path = window.location.pathname;
         const page = path.split('/').pop() || 'index.html';
         const code = localStorage.getItem('vLanguage') || 'en';
@@ -108,6 +117,15 @@ const app = {
                 </a></li>
             </ul>
         `;
+    },
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
     },
 
     setupLogout() {
